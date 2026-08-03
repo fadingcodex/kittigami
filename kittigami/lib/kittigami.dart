@@ -2,6 +2,7 @@ export 'src/components/kittigami_action_button.dart';
 export 'src/components/kittigami_banner.dart';
 export 'src/components/kittigami_checkbox.dart';
 export 'src/components/kittigami_command_bar.dart';
+export 'src/components/kittigami_dropdown.dart';
 export 'src/components/kittigami_panel.dart';
 export 'src/components/kittigami_text_field.dart';
 export 'src/foundation/kittigami_breakpoints.dart';
