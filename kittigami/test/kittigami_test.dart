@@ -134,4 +134,164 @@ void main() {
     await tester.pump();
     expect(checked, isTrue);
   });
+
+  testWidgets('data table renders its empty message', (tester) async {
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: KittigamiTheme(
+          data: KittigamiThemeData.light(),
+          child: KittigamiDataTable(
+            columns: const [KittigamiDataColumn(id: 'name', label: 'Name')],
+            rows: const [],
+            emptyMessage: 'Nothing here yet.',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Name'), findsOneWidget);
+    expect(find.text('Nothing here yet.'), findsOneWidget);
+  });
+
+  testWidgets('data table reports sort and selection interactions', (
+    tester,
+  ) async {
+    var sortCount = 0;
+    bool? selected;
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: KittigamiTheme(
+          data: KittigamiThemeData.light(),
+          child: KittigamiDataTable(
+            columns: [
+              KittigamiDataColumn(
+                id: 'name',
+                label: 'Name',
+                onSort: () => sortCount++,
+              ),
+            ],
+            rows: [
+              KittigamiDataRow(
+                id: 'ada',
+                selected: true,
+                onSelected: (value) => selected = value,
+                cells: const [Text('Ada')],
+              ),
+            ],
+            sortColumnId: 'name',
+            sortDirection: KittigamiSortDirection.ascending,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Name'));
+    await tester.pump();
+    expect(sortCount, 1);
+
+    await tester.tap(find.text('Ada'));
+    await tester.pump();
+    expect(selected, isFalse);
+
+    final table = tester.widget<Table>(find.byType(Table));
+    final selectedRow = table.children[1];
+    final decoration = selectedRow.decoration! as BoxDecoration;
+    expect(decoration.color, KittigamiThemeData.light().colors.selection);
+  });
+
+  testWidgets('data table scrolls horizontally within narrow constraints', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: KittigamiTheme(
+          data: KittigamiThemeData.light(),
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 120,
+              child: KittigamiDataTable(
+                columns: const [
+                  KittigamiDataColumn(id: 'name', label: 'Name'),
+                  KittigamiDataColumn(id: 'status', label: 'Status'),
+                ],
+                rows: const [
+                  KittigamiDataRow(
+                    id: 'ada',
+                    cells: [Text('Ada'), Text('Active')],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));
+    expect(tester.getSize(find.byType(SingleChildScrollView)).width, 120);
+    expect(scrollable.position.maxScrollExtent, greaterThan(0));
+    scrollable.position.jumpTo(scrollable.position.maxScrollExtent);
+    await tester.pump();
+
+    expect(scrollable.position.pixels, greaterThan(0));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('dropdown opens and selects an item', (tester) async {
+    String selected = 'follow_up';
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Overlay(
+          initialEntries: [
+            OverlayEntry(
+              builder: (context) => KittigamiTheme(
+                data: KittigamiThemeData.light(),
+                child: StatefulBuilder(
+                  builder: (context, setState) {
+                    return KittigamiDropdown<String>(
+                      label: 'Reply mode',
+                      value: selected,
+                      onChanged: (value) {
+                        setState(() {
+                          selected = value;
+                        });
+                      },
+                      items: const [
+                        KittigamiDropdownItem(
+                          value: 'follow_up',
+                          label: 'Follow up',
+                        ),
+                        KittigamiDropdownItem(
+                          value: 'review',
+                          label: 'Review later',
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('Follow up'), findsOneWidget);
+    await tester.tap(find.text('Follow up'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Review later'), findsWidgets);
+    await tester.tap(find.text('Review later').last);
+    await tester.pumpAndSettle();
+
+    expect(selected, 'review');
+    expect(find.text('Review later'), findsOneWidget);
+  });
 }
