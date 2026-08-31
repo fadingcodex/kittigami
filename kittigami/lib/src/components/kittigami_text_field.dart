@@ -9,6 +9,9 @@ class KittigamiTextField extends StatefulWidget {
     this.controller,
     this.onChanged,
     this.enabled = true,
+    this.minLines,
+    this.maxLines,
+    this.expands = false,
     super.key,
   });
 
@@ -17,6 +20,9 @@ class KittigamiTextField extends StatefulWidget {
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
   final bool enabled;
+  final int? minLines;
+  final int? maxLines;
+  final bool expands;
 
   @override
   State<KittigamiTextField> createState() => _KittigamiTextFieldState();
@@ -40,6 +46,11 @@ class _KittigamiTextFieldState extends State<KittigamiTextField> {
   @override
   Widget build(BuildContext context) {
     final theme = KittigamiTheme.of(context);
+    final hasMultiline =
+        (widget.minLines ?? 1) > 1 || (widget.maxLines ?? 1) > 1;
+    final effectiveMinLines = widget.minLines ?? (hasMultiline ? 1 : 1);
+    final effectiveMaxLines = widget.maxLines ?? (hasMultiline ? null : 1);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -55,16 +66,29 @@ class _KittigamiTextFieldState extends State<KittigamiTextField> {
             borderRadius: BorderRadius.circular(theme.radius.sm),
           ),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: theme.spacing.md),
-            child: EditableText(
-              controller: widget.controller ?? TextEditingController(),
-              focusNode: _focusNode,
-              style: theme.typography.body,
-              cursorColor: theme.colors.info,
-              backgroundCursorColor: theme.colors.info,
-              onChanged: widget.enabled ? widget.onChanged : null,
-              keyboardType: TextInputType.text,
-              textAlign: TextAlign.start,
+            padding: EdgeInsets.symmetric(
+              horizontal: theme.spacing.md,
+              vertical: theme.spacing.xs,
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: hasMultiline ? theme.spacing.xl : theme.spacing.lg,
+              ),
+              child: EditableText(
+                controller: widget.controller ?? TextEditingController(),
+                focusNode: _focusNode,
+                style: theme.typography.body,
+                cursorColor: theme.colors.info,
+                backgroundCursorColor: theme.colors.info,
+                onChanged: widget.enabled ? widget.onChanged : null,
+                keyboardType: hasMultiline
+                    ? TextInputType.multiline
+                    : TextInputType.text,
+                textAlign: TextAlign.start,
+                minLines: effectiveMinLines,
+                maxLines: effectiveMaxLines,
+                expands: widget.expands,
+              ),
             ),
           ),
         ),

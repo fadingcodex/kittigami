@@ -112,6 +112,31 @@ void main() {
     expect(controller.text, 'hello');
   });
 
+  testWidgets('text field supports multiline configuration', (tester) async {
+    final controller = TextEditingController();
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: KittigamiTheme(
+          data: KittigamiThemeData.light(),
+          child: KittigamiTextField(
+            controller: controller,
+            minLines: 2,
+            maxLines: 4,
+          ),
+        ),
+      ),
+    );
+
+    final editableText = tester.widget<EditableText>(find.byType(EditableText));
+    expect(editableText.minLines, 2);
+    expect(editableText.maxLines, 4);
+    expect(editableText.keyboardType, TextInputType.multiline);
+
+    await tester.enterText(find.byType(EditableText), 'line 1\nline 2');
+    expect(controller.text, 'line 1\nline 2');
+  });
+
   testWidgets('checkbox toggles value on tap', (tester) async {
     bool checked = false;
     await tester.pumpWidget(
