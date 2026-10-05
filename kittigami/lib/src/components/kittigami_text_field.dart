@@ -74,20 +74,24 @@ class _KittigamiTextFieldState extends State<KittigamiTextField> {
               constraints: BoxConstraints(
                 minHeight: hasMultiline ? theme.spacing.xl : theme.spacing.lg,
               ),
-              child: EditableText(
-                controller: widget.controller ?? TextEditingController(),
-                focusNode: _focusNode,
-                style: theme.typography.body,
-                cursorColor: theme.colors.info,
-                backgroundCursorColor: theme.colors.info,
-                onChanged: widget.enabled ? widget.onChanged : null,
-                keyboardType: hasMultiline
-                    ? TextInputType.multiline
-                    : TextInputType.text,
-                textAlign: TextAlign.start,
-                minLines: effectiveMinLines,
-                maxLines: effectiveMaxLines,
-                expands: widget.expands,
+              // Without an app-level WidgetsApp, backspace/delete/arrow keys
+              // have no Shortcuts binding to EditableText's built-in actions.
+              child: DefaultTextEditingShortcuts(
+                child: EditableText(
+                  controller: widget.controller ?? TextEditingController(),
+                  focusNode: _focusNode,
+                  style: theme.typography.body,
+                  cursorColor: theme.colors.info,
+                  backgroundCursorColor: theme.colors.info,
+                  onChanged: widget.enabled ? widget.onChanged : null,
+                  keyboardType: hasMultiline
+                      ? TextInputType.multiline
+                      : TextInputType.text,
+                  textAlign: TextAlign.start,
+                  minLines: effectiveMinLines,
+                  maxLines: effectiveMaxLines,
+                  expands: widget.expands,
+                ),
               ),
             ),
           ),

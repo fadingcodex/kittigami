@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:kittigami/kittigami.dart';
@@ -110,6 +111,29 @@ void main() {
     expect(find.text('Search'), findsOneWidget);
     await tester.enterText(find.byType(EditableText), 'hello');
     expect(controller.text, 'hello');
+  });
+
+  testWidgets('text field deletes characters on a hardware backspace key', (
+    tester,
+  ) async {
+    final controller = TextEditingController();
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: KittigamiTheme(
+          data: KittigamiThemeData.light(),
+          child: KittigamiTextField(controller: controller),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(EditableText), 'hello');
+    expect(controller.text, 'hello');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
+    await tester.pump();
+
+    expect(controller.text, 'hell');
   });
 
   testWidgets('text field supports multiline configuration', (tester) async {
